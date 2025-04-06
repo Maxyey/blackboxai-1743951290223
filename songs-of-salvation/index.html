@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songs of Salvation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="themes.css">
+</head>
+<body class="theme-pastel font-['Poppins']">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary">Songs of Salvation</h1>
+            <button id="adminLoginBtn" class="btn-primary">
+                <i class="fas fa-user-lock mr-2"></i>Admin Login
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 pt-20 pb-8">
+        <!-- Theme Selector -->
+        <div class="theme-selector mb-6 p-4 rounded-lg shadow-sm bg-white/50 backdrop-blur-sm">
+            <h2 class="text-lg font-semibold mb-3">Choose Theme</h2>
+            <div class="flex flex-wrap gap-2">
+                <button class="theme-btn active" data-theme="pastel">Pastel</button>
+                <button class="theme-btn" data-theme="ocean">Ocean</button>
+                <button class="theme-btn" data-theme="forest">Forest</button>
+                <button class="theme-btn" data-theme="sunrise">Sunrise</button>
+                <button class="theme-btn" data-theme="sunset">Sunset</button>
+                <button class="theme-btn" data-theme="lavender">Lavender</button>
+                <button class="theme-btn" data-theme="midnight">Midnight</button>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-section mb-6 p-4 rounded-lg shadow-sm bg-white/50 backdrop-blur-sm">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search songs..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <select id="sortFilter" class="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                        <option value="az">A-Z</option>
+                        <option value="za">Z-A</option>
+                        <option value="newest">Newest-Oldest</option>
+                        <option value="oldest">Oldest-Newest</option>
+                    </select>
+                    <button id="viewToggle" class="btn-secondary">
+                        <i class="fas fa-th-list"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <input type="text" id="tagSearch" placeholder="Search by tags (comma separated)" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+            </div>
+        </div>
+
+        <!-- Songs Container -->
+        <div id="songsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Songs will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Song Detail Modal -->
+    <div id="songDetailModal" class="modal hidden fixed inset-0 z-50">
+        <div class="modal-overlay absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalSongTitle" class="text-2xl font-bold"></h2>
+                    <button class="modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalSongDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal hidden fixed inset-0 z-50">
+        <div class="modal-overlay absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="text-2xl font-bold">Admin Login</h2>
+                    <button class="modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="adminLoginForm" class="space-y-4">
+                        <div>
+                            <label for="adminEmail" class="block mb-1">Email</label>
+                            <input type="email" id="adminEmail" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
+                        </div>
+                        <div>
+                            <label for="adminPassword" class="block mb-1">Password</label>
+                            <input type="password" id="adminPassword" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="adminDashboardModal" class="modal hidden fixed inset-0 z-50">
+        <div class="modal-overlay absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="text-2xl font-bold">Admin Dashboard</h2>
+                    <button class="modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="upload">Upload New Song</button>
+                        <button class="tab-btn" data-tab="manage">Manage Songs</button>
+                    </div>
+                    <div id="uploadTab" class="tab-content active">
+                        <form id="songUploadForm" class="space-y-4">
+                            <div>
+                                <label for="songName" class="block mb-1">Song Name</label>
+                                <input type="text" id="songName" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
+                            </div>
+                            <div>
+                                <label for="composer" class="block mb-1">Composer</label>
+                                <input type="text" id="composer" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
+                            </div>
+                            <div>
+                                <label for="lyrics" class="block mb-1">Lyrics</label>
+                                <textarea id="lyrics" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" rows="4" required></textarea>
+                            </div>
+                            <div>
+                                <label for="tags" class="block mb-1">Tags (comma separated)</label>
+                                <input type="text" id="tags" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                            </div>
+                            <div>
+                                <label for="audioFile" class="block mb-1">Audio File (optional)</label>
+                                <input type="file" id="audioFile" accept=".mp3,.wav" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="favorite" class="mr-2">
+                                <label for="favorite">Mark as Favorite</label>
+                            </div>
+                            <button type="submit" class="btn-primary w-full">Upload Song</button>
+                        </form>
+                    </div>
+                    <div id="manageTab" class="tab-content hidden">
+                        <div id="manageSongsList" class="space-y-4">
+                            <!-- Existing songs will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
