@@ -12,6 +12,9 @@ const manageSongsList = document.getElementById('manageSongsList');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
+// Initialize songs from localStorage
+let songs = JSON.parse(localStorage.getItem('songs')) || [];
+
 // Admin Login
 adminLoginBtn.addEventListener('click', () => {
     adminLoginModal.classList.remove('hidden');
@@ -26,7 +29,7 @@ adminLoginForm.addEventListener('submit', (e) => {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
         adminLoginModal.classList.add('hidden');
         adminDashboardModal.classList.remove('hidden');
-        renderManageSongs(); // Show songs list immediately after login
+        window.renderManageSongs(); // Show songs list immediately after login
     } else {
         alert('Invalid credentials. Please try again.');
     }
@@ -46,7 +49,7 @@ tabButtons.forEach(button => {
         });
 
         if (tabName === 'manage') {
-            renderManageSongs(); // Refresh songs list when switching to manage tab
+            window.renderManageSongs(); // Refresh songs list when switching to manage tab
         }
     });
 });
@@ -93,8 +96,7 @@ songUploadForm.addEventListener('submit', async (e) => {
             date: new Date().toISOString()
         };
 
-        // Get current songs and add new song
-        const songs = JSON.parse(localStorage.getItem('songs')) || [];
+        // Add new song to array and save
         songs.push(newSong);
         localStorage.setItem('songs', JSON.stringify(songs));
 
@@ -105,12 +107,6 @@ songUploadForm.addEventListener('submit', async (e) => {
         // Switch to manage tab to show the newly added song
         document.querySelector('[data-tab="manage"]').click();
 
-        // Trigger storage event for real-time update
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: 'songs',
-            newValue: JSON.stringify(songs)
-        }));
-
     } catch (error) {
         console.error('Error uploading song:', error);
         alert('Error uploading song. Please try again.');
@@ -120,30 +116,26 @@ songUploadForm.addEventListener('submit', async (e) => {
 // Delete Song
 window.deleteSong = function(songId) {
     if (confirm('Are you sure you want to delete this song?')) {
-        const songs = JSON.parse(localStorage.getItem('songs')) || [];
-        const updatedSongs = songs.filter(song => song.id !== songId);
-        localStorage.setItem('songs', JSON.stringify(updatedSongs));
-        
-        // Trigger storage event for real-time update
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: 'songs',
-            newValue: JSON.stringify(updatedSongs)
-        }));
-        
-        renderManageSongs();
+        songs = songs.filter(song => song.id !== songId);
+        localStorage.setItem('songs', JSON.stringify(songs));
+        window.renderManageSongs();
     }
 };
 
 // Edit Song
 window.editSong = function(songId) {
-    const songs = JSON.parse(localStorage.getItem('songs')) || [];
     const song = songs.find(s => s.id === songId);
     if (!song) return;
 
     // Create edit form HTML
     const editFormHTML = `
         <div class="edit-form space-y-4 bg-white p-6 rounded-lg">
-            <h3 class="text-xl font-semibold mb-4">Edit Song</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Edit Song</h3>
+                <button onclick="window.renderManageSongs()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             <div>
                 <label class="block mb-1">Song Name</label>
                 <input type="text" id="editSongName" value="${song.name}" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
@@ -170,8 +162,8 @@ window.editSong = function(songId) {
                 <label for="editFavorite">Mark as Favorite</label>
             </div>
             <div class="flex gap-2 mt-6">
-                <button onclick="updateSong('${songId}')" class="btn-primary flex-1">Save Changes</button>
-                <button onclick="renderManageSongs()" class="btn-secondary">Cancel</button>
+                <button onclick="window.updateSong('${songId}')" class="btn-primary flex-1">Save Changes</button>
+                <button onclick="window.renderManageSongs()" class="btn-secondary">Cancel</button>
             </div>
         </div>
     `;
@@ -182,7 +174,6 @@ window.editSong = function(songId) {
 
 // Update Song
 window.updateSong = async function(songId) {
-    const songs = JSON.parse(localStorage.getItem('songs')) || [];
     const songIndex = songs.findIndex(s => s.id === songId);
     if (songIndex === -1) return;
 
@@ -206,18 +197,12 @@ window.updateSong = async function(songId) {
         editedSong.tags = document.getElementById('editTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
         editedSong.favorite = document.getElementById('editFavorite').checked;
 
-        // Update songs array
+        // Update songs array and save
         songs[songIndex] = editedSong;
         localStorage.setItem('songs', JSON.stringify(songs));
 
-        // Trigger storage event for real-time update
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: 'songs',
-            newValue: JSON.stringify(songs)
-        }));
-
         alert('Song updated successfully!');
-        renderManageSongs();
+        window.renderManageSongs();
 
     } catch (error) {
         console.error('Error updating song:', error);
@@ -226,9 +211,7 @@ window.updateSong = async function(songId) {
 };
 
 // Render Manage Songs List
-function renderManageSongs() {
-    const songs = JSON.parse(localStorage.getItem('songs')) || [];
-    
+window.renderManageSongs = function() {
     if (songs.length === 0) {
         manageSongsList.innerHTML = `
             <div class="text-center text-gray-500 py-8">
@@ -241,21 +224,25 @@ function renderManageSongs() {
     manageSongsList.innerHTML = songs.map(song => `
         <div class="song-item p-4 bg-white rounded-lg shadow-sm mb-4">
             <div class="flex justify-between items-start">
-                <div>
+                <div class="flex-1">
                     <h3 class="text-lg font-semibold">${song.name}</h3>
                     <p class="text-sm text-gray-600">${song.composer}</p>
                     <p class="text-sm text-gray-500 mt-1">Uploaded: ${new Date(song.date).toLocaleDateString()}</p>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-600">Lyrics:</p>
+                        <p class="text-sm mt-1">${song.lyrics}</p>
+                    </div>
                     <div class="tags mt-2">
                         ${song.tags.map(tag => `
                             <span class="tag">${tag}</span>
                         `).join('')}
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="editSong('${song.id}')" class="btn-secondary px-3 py-1">
+                <div class="flex gap-2 ml-4">
+                    <button onclick="window.editSong('${song.id}')" class="btn-secondary px-3 py-1">
                         <i class="fas fa-edit mr-1"></i> Edit
                     </button>
-                    <button onclick="deleteSong('${song.id}')" class="btn-secondary bg-red-500 px-3 py-1">
+                    <button onclick="window.deleteSong('${song.id}')" class="btn-secondary bg-red-500 px-3 py-1">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
                 </div>
@@ -271,14 +258,10 @@ function renderManageSongs() {
             ` : ''}
         </div>
     `).join('');
-}
+};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Add event listener for storage changes
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'songs') {
-            renderManageSongs();
-        }
-    });
+    // Load songs from localStorage
+    songs = JSON.parse(localStorage.getItem('songs')) || [];
 });
