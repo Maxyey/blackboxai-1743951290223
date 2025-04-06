@@ -26,7 +26,7 @@ adminLoginForm.addEventListener('submit', (e) => {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
         adminLoginModal.classList.add('hidden');
         adminDashboardModal.classList.remove('hidden');
-        renderManageSongs();
+        renderManageSongs(); // Show songs list immediately after login
     } else {
         alert('Invalid credentials. Please try again.');
     }
@@ -46,7 +46,7 @@ tabButtons.forEach(button => {
         });
 
         if (tabName === 'manage') {
-            renderManageSongs();
+            renderManageSongs(); // Refresh songs list when switching to manage tab
         }
     });
 });
@@ -102,6 +102,9 @@ songUploadForm.addEventListener('submit', async (e) => {
         songUploadForm.reset();
         alert('Song uploaded successfully!');
 
+        // Switch to manage tab to show the newly added song
+        document.querySelector('[data-tab="manage"]').click();
+
         // Trigger storage event for real-time update
         window.dispatchEvent(new StorageEvent('storage', {
             key: 'songs',
@@ -114,50 +117,44 @@ songUploadForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Render Manage Songs List
-function renderManageSongs() {
-    const songs = JSON.parse(localStorage.getItem('songs')) || [];
-    
-    manageSongsList.innerHTML = songs.map(song => `
-        <div class="song-item p-4 bg-white rounded-lg shadow-sm">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="text-lg font-semibold">${song.name}</h3>
-                    <p class="text-sm text-gray-600">${song.composer}</p>
-                </div>
-                <button onclick="editSong('${song.id}')" class="btn-secondary">
-                    <i class="fas fa-edit mr-1"></i> Edit
-                </button>
-            </div>
-            <div class="tags mt-2">
-                ${song.tags.map(tag => `
-                    <span class="tag">${tag}</span>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
-}
+// Delete Song
+window.deleteSong = function(songId) {
+    if (confirm('Are you sure you want to delete this song?')) {
+        const songs = JSON.parse(localStorage.getItem('songs')) || [];
+        const updatedSongs = songs.filter(song => song.id !== songId);
+        localStorage.setItem('songs', JSON.stringify(updatedSongs));
+        
+        // Trigger storage event for real-time update
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'songs',
+            newValue: JSON.stringify(updatedSongs)
+        }));
+        
+        renderManageSongs();
+    }
+};
 
 // Edit Song
-function editSong(songId) {
+window.editSong = function(songId) {
     const songs = JSON.parse(localStorage.getItem('songs')) || [];
     const song = songs.find(s => s.id === songId);
     if (!song) return;
 
     // Create edit form HTML
     const editFormHTML = `
-        <div class="edit-form space-y-4">
+        <div class="edit-form space-y-4 bg-white p-6 rounded-lg">
+            <h3 class="text-xl font-semibold mb-4">Edit Song</h3>
             <div>
                 <label class="block mb-1">Song Name</label>
-                <input type="text" id="editSongName" value="${song.name}" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                <input type="text" id="editSongName" value="${song.name}" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
             </div>
             <div>
                 <label class="block mb-1">Composer</label>
-                <input type="text" id="editComposer" value="${song.composer}" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                <input type="text" id="editComposer" value="${song.composer}" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" required>
             </div>
             <div>
                 <label class="block mb-1">Lyrics</label>
-                <textarea id="editLyrics" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" rows="4">${song.lyrics}</textarea>
+                <textarea id="editLyrics" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary" rows="4" required>${song.lyrics}</textarea>
             </div>
             <div>
                 <label class="block mb-1">Tags (comma separated)</label>
@@ -166,12 +163,13 @@ function editSong(songId) {
             <div>
                 <label class="block mb-1">New Audio File (optional)</label>
                 <input type="file" id="editAudioFile" accept=".mp3,.wav" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-primary">
+                ${song.audioUrl ? '<p class="text-sm text-gray-500 mt-1">Current audio file will be kept if no new file is selected</p>' : ''}
             </div>
             <div class="flex items-center">
                 <input type="checkbox" id="editFavorite" ${song.favorite ? 'checked' : ''} class="mr-2">
                 <label for="editFavorite">Mark as Favorite</label>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 mt-6">
                 <button onclick="updateSong('${songId}')" class="btn-primary flex-1">Save Changes</button>
                 <button onclick="renderManageSongs()" class="btn-secondary">Cancel</button>
             </div>
@@ -180,10 +178,10 @@ function editSong(songId) {
 
     // Replace the manage songs list with the edit form
     manageSongsList.innerHTML = editFormHTML;
-}
+};
 
 // Update Song
-async function updateSong(songId) {
+window.updateSong = async function(songId) {
     const songs = JSON.parse(localStorage.getItem('songs')) || [];
     const songIndex = songs.findIndex(s => s.id === songId);
     if (songIndex === -1) return;
@@ -225,4 +223,62 @@ async function updateSong(songId) {
         console.error('Error updating song:', error);
         alert('Error updating song. Please try again.');
     }
+};
+
+// Render Manage Songs List
+function renderManageSongs() {
+    const songs = JSON.parse(localStorage.getItem('songs')) || [];
+    
+    if (songs.length === 0) {
+        manageSongsList.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                No songs have been uploaded yet.
+            </div>
+        `;
+        return;
+    }
+    
+    manageSongsList.innerHTML = songs.map(song => `
+        <div class="song-item p-4 bg-white rounded-lg shadow-sm mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-semibold">${song.name}</h3>
+                    <p class="text-sm text-gray-600">${song.composer}</p>
+                    <p class="text-sm text-gray-500 mt-1">Uploaded: ${new Date(song.date).toLocaleDateString()}</p>
+                    <div class="tags mt-2">
+                        ${song.tags.map(tag => `
+                            <span class="tag">${tag}</span>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editSong('${song.id}')" class="btn-secondary px-3 py-1">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                    <button onclick="deleteSong('${song.id}')" class="btn-secondary bg-red-500 px-3 py-1">
+                        <i class="fas fa-trash mr-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+            ${song.audioUrl ? `
+                <div class="mt-3">
+                    <p class="text-sm text-gray-600 mb-1">Audio Preview:</p>
+                    <audio controls class="w-full">
+                        <source src="${song.audioUrl}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
 }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Add event listener for storage changes
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'songs') {
+            renderManageSongs();
+        }
+    });
+});
