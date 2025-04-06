@@ -1,0 +1,96 @@
+/* Theme: Pastel */
+.theme-pastel {
+    --theme-bg: #fdf2f8;
+    --theme-text: #1f2937;
+    --theme-btn-bg: #fbcfe8;
+    --theme-btn-text: #831843;
+    --theme-tag-bg: #fce7f3;
+    --theme-tag-text: #831843;
+}
+
+/* Theme: Ocean */
+.theme-ocean {
+    --theme-bg: #ecfeff;
+    --theme-text: #164e63;
+    --theme-btn-bg: #a5f3fc;
+    --theme-btn-text: #155e75;
+    --theme-tag-bg: #cffafe;
+    --theme-tag-text: #155e75;
+}
+
+/* Theme: Forest */
+.theme-forest {
+    --theme-bg: #f0fdf4;
+    --theme-text: #14532d;
+    --theme-btn-bg: #bbf7d0;
+    --theme-btn-text: #15803d;
+    --theme-tag-bg: #dcfce7;
+    --theme-tag-text: #15803d;
+}
+
+/* Theme: Sunrise */
+.theme-sunrise {
+    --theme-bg: #fff7ed;
+    --theme-text: #7c2d12;
+    --theme-btn-bg: #fed7aa;
+    --theme-btn-text: #9a3412;
+    --theme-tag-bg: #ffedd5;
+    --theme-tag-text: #9a3412;
+}
+
+/* Theme: Sunset */
+.theme-sunset {
+    --theme-bg: #fef2f2;
+    --theme-text: #7f1d1d;
+    --theme-btn-bg: #fecaca;
+    --theme-btn-text: #991b1b;
+    --theme-tag-bg: #fee2e2;
+    --theme-tag-text: #991b1b;
+}
+
+/* Theme: Lavender */
+.theme-lavender {
+    --theme-bg: #f5f3ff;
+    --theme-text: #4c1d95;
+    --theme-btn-bg: #ddd6fe;
+    --theme-btn-text: #5b21b6;
+    --theme-tag-bg: #ede9fe;
+    --theme-tag-text: #5b21b6;
+}
+
+/* Theme: Midnight */
+.theme-midnight {
+    --theme-bg: #1e1b4b;
+    --theme-text: #e0e7ff;
+    --theme-btn-bg: #312e81;
+    --theme-btn-text: #e0e7ff;
+    --theme-tag-bg: #312e81;
+    --theme-tag-text: #e0e7ff;
+}
+
+/* Theme Transition */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme Button Styles */
+.theme-btn {
+    background-color: var(--theme-btn-bg);
+    color: var(--theme-btn-text);
+    border: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.theme-btn.active {
+    border-color: var(--theme-btn-text);
+    background-color: var(--theme-btn-text);
+    color: var(--theme-btn-bg);
+}
